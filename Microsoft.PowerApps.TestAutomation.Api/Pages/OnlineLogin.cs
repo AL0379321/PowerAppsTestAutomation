@@ -91,13 +91,31 @@ namespace Microsoft.PowerApps.TestAutomation.Api
             var redirect = false;
             // bool online = !(this.OnlineDomains != null && !this.OnlineDomains.Any(d => uri.Host.EndsWith(d)));
             driver.Navigate().GoToUrl(uri);
+            driver.Manage().Window.Maximize();
 
             if (driver.IsVisible(By.Id("use_another_account_link")))
                 driver.ClickWhenAvailable(By.Id("use_another_account_link"));
 
-            // Attempt to locate the UserId field
-            driver.WaitUntilAvailable(By.XPath(Elements.Xpath[Reference.Login.UserId]));
-            driver.WaitUntilVisible(By.XPath(Elements.Xpath[Reference.Login.UserId]));
+            int retryCount = 3;
+            int delayBetweenRetries = 5000; // 5 seconds
+
+            for (int attempt = 0; attempt < retryCount; attempt++)
+            {
+                try
+                {
+                    driver.WaitUntilAvailable(By.XPath(Elements.Xpath[Reference.Login.UserId]), TimeSpan.FromSeconds(30));
+                    driver.WaitUntilVisible(By.XPath(Elements.Xpath[Reference.Login.UserId]), TimeSpan.FromSeconds(30));
+                    break; // Exit the loop if no exception is thrown, meaning the element was found.
+                }
+                catch (WebDriverTimeoutException)
+                {
+                    if (attempt == retryCount - 1) // If it's the last attempt and still failing, throw the exception.
+                        throw;
+                    else
+                        Thread.Sleep(delayBetweenRetries); // Wait for the specified time before trying again.
+                }
+            }
+
 
             var userIdFieldVisible = driver.IsVisible(By.XPath(Elements.Xpath[Reference.Login.UserId]));
             Debug.WriteLine($"Value of userIdFieldVisible: {userIdFieldVisible}");
@@ -144,7 +162,8 @@ namespace Microsoft.PowerApps.TestAutomation.Api
                         {
                             try
                             {
-                                e.WaitUntilVisible(By.ClassName("apps-list"), new TimeSpan(0, 0, 30));
+                                // e.WaitUntilVisible(By.ClassName("apps-list"), new TimeSpan(0, 0, 30));
+                                e.WaitUntilVisible(By.XPath(Elements.Xpath[Reference.Login.AppsList]), new TimeSpan(0, 0, 30));
                             }
                             catch (Exception exc)
                             {
@@ -172,7 +191,8 @@ namespace Microsoft.PowerApps.TestAutomation.Api
                     {
                         try
                         {
-                            e.WaitUntilVisible(By.ClassName("apps-list"), new TimeSpan(0, 0, 30));
+                            // e.WaitUntilVisible(By.ClassName("apps-list"), new TimeSpan(0, 0, 30));
+                            e.WaitUntilVisible(By.XPath(Elements.Xpath[Reference.Login.AppsList]), new TimeSpan(0, 0, 30));
                         }
                         catch (Exception exc)
                         {
@@ -204,7 +224,8 @@ namespace Microsoft.PowerApps.TestAutomation.Api
                                     {
                                         try
                                         {
-                                            e.WaitUntilVisible(By.ClassName("apps-list"), new TimeSpan(0, 0, 30));
+                                            // e.WaitUntilVisible(By.ClassName("apps-list"), new TimeSpan(0, 0, 30));
+                                            e.WaitUntilVisible(By.XPath(Elements.Xpath[Reference.Login.AppsList]), new TimeSpan(0, 0, 30));
                                         }
                                         catch (Exception exc)
                                         {
